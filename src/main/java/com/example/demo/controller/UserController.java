@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.LoginRequest;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,14 @@ public class UserController {
     @PostMapping
     public User createUser(@RequestBody User user) { // @RequestBody Take JSON data from the HTTP request body and convert it into a Java object.
         return userService.createUser(user);
+    }
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) { // converts json from http request to dto type
+
+        return userService.login(
+                request.getEmail(),
+                request.getPassword()
+        );
     }
     @PutMapping("/{userId}/roles/{roleName}")
     public User assignRole(
