@@ -33,12 +33,12 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
 
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims = Jwts.parser()//Creates JWT parser object.
+                .verifyWith(getSigningKey())// Use this secret key to verify token signature(3rd part of token)
+                .build()//"Parser setup complete"
+                .parseSignedClaims(token)//Actually parses + validates JWT.
+                .getPayload();//Extracts JWT payload/body.
 
-        return claims.getSubject();
+        return claims.getSubject();//get username
     }
 }

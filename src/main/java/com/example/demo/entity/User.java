@@ -21,7 +21,7 @@ public class User {
 
     private boolean firstLogin = true;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( // Because in SQL, a Many-to-Many relation cannot be stored directly.So Hibernate creates a bridge table:
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
