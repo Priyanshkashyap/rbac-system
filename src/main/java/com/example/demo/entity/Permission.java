@@ -1,12 +1,9 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-
-import java.util.HashSet;
-import java.util.Set;
-
+// Permission = actual action. eg. USER_CREATE,USER_DELETE,etc.
 @Entity
-public class Role {
+public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,7 +11,7 @@ public class Role {
 
     private String name;
 
-    public Role() {}
+    public Permission() {}
 
     public Long getId() {
         return id;
@@ -27,11 +24,4 @@ public class Role {
     public void setName(String name) {
         this.name = name;
     }
-    @ManyToMany
-    @JoinTable(
-            name = "role_permissions",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    private Set<Permission> permissions = new HashSet<>();
 }

@@ -27,6 +27,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id") // join only but from other side
     )
+
     private Set<Role> roles = new HashSet<>(); // set of role objects
 
     public User() {}
@@ -74,4 +75,11 @@ public class User {
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
+    @ManyToMany
+    @JoinTable(
+            name = "user_role_groups",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id")
+    )
+    private Set<RoleGroup> roleGroups = new HashSet<>();
 }
