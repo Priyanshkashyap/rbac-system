@@ -47,13 +47,13 @@ public class JwtFilter extends OncePerRequestFilter { // This filter runs on EVE
                 String username = jwtUtil.extractUsername(token); // our jwt is made using email so that is extracted
 
                 UserDetails userDetails =
-                        customUserDetailsService.loadUserByUsername(username);// "Go to database, find the user, and return Spring Security authentication object."
+                        customUserDetailsService.loadUserByUsername(username);// "Go to database, find the user and its roles and permissions, and return Spring Security authentication object."
 
                 UsernamePasswordAuthenticationToken authentication = // default spring security  auth class. needed to match username from username taken out by token
                         new UsernamePasswordAuthenticationToken(
                                 username,
                                 null,//password Not needed because JWT already authenticated user.
-                                userDetails.getAuthorities() // get roles from here to get RBAC
+                                userDetails.getAuthorities() // get roles and permissions from here to get RBAC
                         );
 
                 SecurityContextHolder.getContext()

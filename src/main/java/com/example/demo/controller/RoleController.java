@@ -16,4 +16,14 @@ public class RoleController {
     public Role createRole(@RequestBody Role role) { // @RequestBody Converts JSON → Java object of db
         return roleService.createRole(role);
     }
+    @PutMapping("/{roleId}/permissions/{permissionId}")
+    public Role assignPermission(
+            @PathVariable Long roleId,
+            @PathVariable Long permissionId
+    ) {
+        return roleService.assignPermission(
+                roleId,
+                permissionId
+        );
+    }
 }

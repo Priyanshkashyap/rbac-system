@@ -24,14 +24,47 @@ public class CustomUserDetailsService implements UserDetailsService {// This cla
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found"));
 
-        return new org.springframework.security.core.userdetails.User( //This is Spring Security's internal User object.
-                user.getEmail(),
-                user.getPassword(), // Spring Security compares this hashed password with login password.
-                user.getRoles()// all roles
-                        .stream() // process it one by one
-                        .map(role ->
-                                new SimpleGrantedAuthority("ROLE_" + role.getName())) // takes out name of role from something like ROLE_USER given already
-                        .collect(Collectors.toList())// Converts stream into list of authorities.
-        );
+                return new org.springframework.security.core.userdetails.User(
+                        user.getEmail(),
+                        user.getPassword(),
+
+                        user.getRoles()
+                                .stream()
+                                .flatMap(role -> { // For each role, we create:Role authority,Permission authorities,then combine them.
+
+                                    var roleAuthorities =
+                                            java.util.stream.Stream.of(
+                                                    new SimpleGrantedAuthority( // creates an authority object representing:
+                                                            "ROLE_" + role.getName()
+                                                    )
+                                            );
+
+                                    var permissionAuthorities =
+                                            role.getPermissions()
+                                                    .stream()
+                                                    .map(permission ->
+                                                            new SimpleGrantedAuthority( //creates an authority object representing:
+                                                                    permission.getName()
+                                                            )
+                                                    );
+
+                                    return java.util.stream.Stream.concat(
+                                            roleAuthorities,
+                                            permissionAuthorities
+                                    );
+                                })
+                                .collect(Collectors.toList()) // receives as list
+                );// flatmap converts everything to
+                // [
+                // ROLE_ADMIN,
+                // USER_READ,
+                // ROLE_MANAGER,
+                // USER_CREATE
+                //]
+
+                //without flatmap: [
+                //  [ROLE_ADMIN, USER_READ],
+                //  [ROLE_MANAGER, USER_CREATE]
+                //]
     }
 }

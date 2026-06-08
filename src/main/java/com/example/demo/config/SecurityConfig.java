@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/manage/**").hasAuthority("USER_DELETE")// only ppl with this authority can access these urls
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter,
