@@ -21,6 +21,16 @@ public class User {
 
     private boolean firstLogin = true;
 
+    private String firstName;
+
+    private String lastName;
+
+    private String phoneNumber;
+
+    private String secretQuestion;
+
+    private String secretAnswer;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( // Because in SQL, a Many-to-Many relation cannot be stored directly.So Hibernate creates a bridge table:
             name = "user_roles",
@@ -46,6 +56,46 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getSecretQuestion() {
+        return secretQuestion;
+    }
+
+    public void setSecretQuestion(String secretQuestion) {
+        this.secretQuestion = secretQuestion;
+    }
+
+    public String getSecretAnswer() {
+        return secretAnswer;
+    }
+
+    public void setSecretAnswer(String secretAnswer) {
+        this.secretAnswer = secretAnswer;
     }
 
     public void setEmail(String email) {

@@ -1,5 +1,8 @@
 package com.example.demo.service;
 import com.example.demo.config.JwtUtil;
+import com.example.demo.dto.CompleteProfileRequest;
+import com.example.demo.dto.LoginResponse;
+import com.example.demo.dto.ResetPasswordRequest;
 import com.example.demo.entity.Role;
 import com.example.demo.repository.RoleRepository;
 import java.util.Optional;
@@ -39,16 +42,85 @@ public class UserService {
 
         return userRepository.save(user);
     }
-    public String login(String email, String password) {
+    public LoginResponse login(String email, String password) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) { // password encoder is already an interface whose bean we created in security config file . it acts as bcrypt
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new LoginResponse( // instead of token we are also returning first login as a form of another dto
+                token,
+                user.isFirstLogin()
+        );
+    }
+    public User completeProfile(
+            Long userId,
+            CompleteProfileRequest request
+    ) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow();
+
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setPhoneNumber(request.getPhoneNumber());
+
+        user.setSecretQuestion(
+                request.getSecretQuestion()
+        );
+
+        user.setSecretAnswer(
+                request.getSecretAnswer()
+        );
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getNewPassword()
+                )
+        );
+
+        user.setFirstLogin(false);
+
+        return userRepository.save(user);
+    }
+    public String getSecretQuestion(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        return user.getSecretQuestion();
+    }
+    public String resetPassword(
+            ResetPasswordRequest request
+    ) {
+
+        User user = userRepository.findByEmail(
+                request.getEmail()
+        ).orElseThrow();
+
+        if (!user.getSecretAnswer()
+                .equalsIgnoreCase(request.getAnswer())) {
+
+            throw new RuntimeException(
+                    "Wrong secret answer"
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getNewPassword()
+                )
+        );
+
+        userRepository.save(user);
+
+        return "Password reset successful";
     }
 }
 

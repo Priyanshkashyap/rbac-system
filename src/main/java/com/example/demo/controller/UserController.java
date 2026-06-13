@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.*;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,7 @@ public class UserController {
         return userService.createUser(user);
     }
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) { // converts json from http request to dto type
-
+    public LoginResponse login(@RequestBody LoginRequest request) { // takes input from request body
         return userService.login(
                 request.getEmail(),
                 request.getPassword()
@@ -31,5 +30,26 @@ public class UserController {
             @PathVariable String roleName
     ) {
         return userService.assignRole(userId, roleName);
+    }
+    @PutMapping("/{id}/complete-profile")
+    public User completeProfile(
+            @PathVariable Long id,
+            @RequestBody CompleteProfileRequest request
+    ) {
+        return userService.completeProfile(id, request);
+    }
+    @PostMapping("/forgot-password")
+    public String forgotPassword(
+            @RequestBody ForgotPasswordRequest request
+    ) {
+        return userService.getSecretQuestion(
+                request.getEmail()
+        );
+    }
+    @PostMapping("/reset-password")
+    public String resetPassword(
+            @RequestBody ResetPasswordRequest request
+    ) {
+        return userService.resetPassword(request);
     }
 }

@@ -27,7 +27,7 @@ public class Role {
     public void setName(String name) {
         this.name = name;
     }
-    @ManyToMany
+    @ManyToMany // default fetch type is lazy loading i.e. get permissions hashset only when specifically asked or else just load a proxy object
     @JoinTable(
             name = "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),
