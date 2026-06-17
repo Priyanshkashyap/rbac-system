@@ -1,10 +1,13 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
-
+@Getter
+@Setter
 @Entity
 @Table(name = "users") // because user is reserved in PostgreSQL sometimes.
 public class User {
@@ -12,24 +15,17 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String username;
-
     private String email;
-
     private String password;
-
     private boolean firstLogin = true;
-
     private String firstName;
-
     private String lastName;
-
     private String phoneNumber;
-
     private String secretQuestion;
-
     private String secretAnswer;
+    private boolean active = true;
+    private String profileTheme = "LIGHT";
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( // Because in SQL, a Many-to-Many relation cannot be stored directly.So Hibernate creates a bridge table:
@@ -40,96 +36,11 @@ public class User {
 
     private Set<Role> roles = new HashSet<>(); // set of role objects
 
-    public User() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getSecretQuestion() {
-        return secretQuestion;
-    }
-
-    public void setSecretQuestion(String secretQuestion) {
-        this.secretQuestion = secretQuestion;
-    }
-
-    public String getSecretAnswer() {
-        return secretAnswer;
-    }
-
-    public void setSecretAnswer(String secretAnswer) {
-        this.secretAnswer = secretAnswer;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public boolean isFirstLogin() {
-        return firstLogin;
-    }
-
-    public void setFirstLogin(boolean firstLogin) {
-        this.firstLogin = firstLogin;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)// lol
     @JoinTable(
             name = "user_role_groups",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id")
     )
-    private Set<RoleGroup> roleGroups = new HashSet<>();
+    private Set<RoleGroup> roleGroups = new HashSet<>();// by this it knows that group and user are joined
 }

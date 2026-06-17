@@ -3,15 +3,20 @@ import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.CompleteProfileRequest;
 import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.ResetPasswordRequest;
+import com.example.demo.dto.UpdateUserRequest;
 import com.example.demo.entity.Role;
+import com.example.demo.entity.RoleGroup;
+import com.example.demo.repository.RoleGroupRepository;
 import com.example.demo.repository.RoleRepository;
+
+import java.util.List;
 import java.util.Optional;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import com.example.demo.util.PasswordValidator;
 
 @Service
 public class UserService {
@@ -23,11 +28,19 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
+    private RoleGroupRepository roleGroupRepository;
+    @Autowired
     private JwtUtil jwtUtil;
     public User createUser(User user) {
 
+        if (!PasswordValidator.isStrong(
+                user.getPassword()
+        )) {
+            throw new RuntimeException(
+                    "Password must contain uppercase, lowercase, number and special character"
+            );
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         return userRepository.save(user);
     }
     public User assignRole(Long userId, String roleName) {
@@ -46,6 +59,12 @@ public class UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.isActive()) {
+            throw new RuntimeException(
+                    "User is deactivated"
+            );
+        }
 
         if (!passwordEncoder.matches(password, user.getPassword())) { // password encoder is already an interface whose bean we created in security config file . it acts as bcrypt
             throw new RuntimeException("Invalid password");
@@ -77,7 +96,14 @@ public class UserService {
         user.setSecretAnswer(
                 request.getSecretAnswer()
         );
+        if (!PasswordValidator.isStrong(
+                request.getNewPassword()
+        )) {
 
+            throw new RuntimeException(
+                    "Weak password"
+            );
+        }
         user.setPassword(
                 passwordEncoder.encode(
                         request.getNewPassword()
@@ -111,7 +137,14 @@ public class UserService {
                     "Wrong secret answer"
             );
         }
+        if (!PasswordValidator.isStrong(
+                request.getNewPassword()
+        )) {
 
+            throw new RuntimeException(
+                    "Weak password"
+            );
+        }
         user.setPassword(
                 passwordEncoder.encode(
                         request.getNewPassword()
@@ -121,6 +154,89 @@ public class UserService {
         userRepository.save(user);
 
         return "Password reset successful";
+    }
+    public User assignGroup(
+            Long userId,
+            Long groupId
+    ) {
+
+        User user =
+                userRepository.findById(userId)
+                        .orElseThrow();
+
+        RoleGroup group =
+                roleGroupRepository.findById(groupId)
+                        .orElseThrow();
+
+        user.getRoleGroups().add(group);
+
+        return userRepository.save(user);
+    }
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+    public User getUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow();
+    }
+    public User updateUser(
+            Long id,
+            UpdateUserRequest request
+    ) {
+
+        User user =
+                userRepository.findById(id)
+                        .orElseThrow();
+
+        user.setFirstName(
+                request.getFirstName()
+        );
+
+        user.setLastName(
+                request.getLastName()
+        );
+
+        user.setPhoneNumber(
+                request.getPhoneNumber()
+        );
+
+        user.setActive(
+                request.isActive()
+        );
+
+        return userRepository.save(user);
+    }
+    public User deactivateUser(Long id) {
+
+        User user =
+                userRepository.findById(id)
+                        .orElseThrow();
+
+        user.setActive(false);
+
+        return userRepository.save(user);
+    }
+    public User updateTheme(
+            Long userId,
+            String theme
+    ) {
+
+        User user =
+                userRepository.findById(userId)
+                        .orElseThrow();
+
+        if (!theme.equals("LIGHT")
+                && !theme.equals("DARK")
+                && !theme.equals("ADMIN")) {
+
+            throw new RuntimeException(
+                    "Invalid theme"
+            );
+        }
+
+        user.setProfileTheme(theme);
+
+        return userRepository.save(user);
     }
 }
 

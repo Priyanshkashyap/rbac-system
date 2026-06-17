@@ -32,8 +32,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users").permitAll()
+                        .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/users/forgot-password").permitAll()
+                        .requestMatchers("/api/users/reset-password").permitAll()
+                        .requestMatchers("/api/users/").permitAll()
+                        .requestMatchers("/api/users/*/complete-profile").permitAll()
+                        .requestMatchers("/api/users/**")
+                        .hasRole("ADMIN")// every other api of users except users and users/login are protected
                         .requestMatchers("/api/manage/**").hasAuthority("USER_DELETE")// only ppl with this authority can access these urls
                         .anyRequest().authenticated()
                 )
