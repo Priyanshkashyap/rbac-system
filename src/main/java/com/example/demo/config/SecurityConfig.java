@@ -3,6 +3,7 @@ package com.example.demo.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,15 +33,66 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users").permitAll()
+
+                        // Public endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users/forgot-password").permitAll()
                         .requestMatchers("/api/users/reset-password").permitAll()
-                        .requestMatchers("/api/users/").permitAll()
                         .requestMatchers("/api/users/*/complete-profile").permitAll()
-                        .requestMatchers("/api/users/**")
-                        .hasRole("ADMIN")// every other api of users except users and users/login are protected
-                        .requestMatchers("/api/manage/**").hasAuthority("USER_DELETE")// only ppl with this authority can access these urls
+
+                        // User APIs
+                        .requestMatchers(HttpMethod.GET, "/api/users")
+                        .hasAuthority("USER_READ")
+
+                        .requestMatchers(HttpMethod.GET, "/api/users/*")
+                        .hasAuthority("USER_READ")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*")
+                        .hasAuthority("USER_UPDATE")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/*")
+                        .hasAuthority("USER_DELETE")
+
+                        // User Role Assignment
+                        .requestMatchers("/api/users/*/roles/*")
+                        .hasAuthority("ROLE_ASSIGN")
+
+                        // User Group Assignment
+                        .requestMatchers("/api/users/*/groups/*")
+                        .hasAuthority("GROUP_ASSIGN")
+
+                        // Theme
+                        .requestMatchers("/api/users/*/theme")
+                        .authenticated()
+
+                        // Export
+                        .requestMatchers("/api/users/*/export")
+                        .hasAuthority("EXPORT_USER")
+
+                        // Audit
+                        .requestMatchers("/api/audit/**")
+                        .hasAuthority("AUDIT_READ")
+
+                        // Permissions
+                        .requestMatchers("/api/permissions/**")
+                        .hasAuthority("PERMISSION_MANAGE")
+
+                        // Roles
+                        .requestMatchers("/api/roles/**")
+                        .hasAuthority("ROLE_MANAGE")
+
+                        .requestMatchers("/api/roles/*/permissions/*")
+                        .hasAuthority("PERMISSION_ASSIGN")
+
+                        // Role Groups
+                        .requestMatchers("/api/role-groups/**")
+                        .hasAuthority("ROLE_GROUP_MANAGE")
+
+                        // Example special permission
+                        .requestMatchers("/api/manage/**")
+                        .hasAuthority("USER_DELETE")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter,

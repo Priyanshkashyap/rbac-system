@@ -238,6 +238,14 @@ public class UserService {
 
         return userRepository.save(user);
     }
+    public void permanentDeleteUser(Long id) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        userRepository.delete(user);
+    }
 }
 
 // Controller → Service → Repository → DB

@@ -137,4 +137,13 @@ public class UserController {
                 .headers(headers)
                 .body(excelFile);
     }
+    @DeleteMapping("/{id}/permanent")
+    public String permanentDeleteUser(
+            @PathVariable Long id
+    ) {
+
+        userService.permanentDeleteUser(id);
+
+        return "User permanently deleted";
+    }
 }
