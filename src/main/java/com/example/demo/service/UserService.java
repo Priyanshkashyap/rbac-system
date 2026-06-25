@@ -74,7 +74,8 @@ public class UserService {
 
         return new LoginResponse( // instead of token we are also returning first login as a form of another dto
                 token,
-                user.isFirstLogin()
+                user.isFirstLogin(),
+                user.getId()
         );
     }
     public User completeProfile(
