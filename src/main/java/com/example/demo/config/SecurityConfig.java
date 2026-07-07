@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
+    private OAuth2SuccessHandler oAuth2SuccessHandler;
+    @Autowired
     private JwtFilter jwtFilter;
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -33,7 +36,8 @@ public class SecurityConfig {
 
         http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // we disabled the csrf attack using jwt so no need here
+                .sessionManagement(sessionManagement ->sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // no default session value isnt stored in the server as default
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // options request always sent before all the other requests when talked by cors
                         // Public endpoints
@@ -94,11 +98,15 @@ public class SecurityConfig {
                         // Example special permission
                         .requestMatchers("/api/manage/**")
                         .hasAuthority("USER_DELETE")
-
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth -> oauth
+                        .successHandler(
+                                oAuth2SuccessHandler
+                        ))
                 .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);//“Run my JWT filter BEFORE Spring’s normal login authentication filter.”
+                        UsernamePasswordAuthenticationFilter.class);//“Run my JWT filter BEFORE Spring’s normal login authentication filter.ye normal vaala krne se pehle hi hum fields bhardiye”
 
         return http.build();
     }

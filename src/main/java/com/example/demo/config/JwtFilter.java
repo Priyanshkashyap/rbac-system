@@ -48,14 +48,14 @@ public class JwtFilter extends OncePerRequestFilter { // This filter runs on EVE
 
                 UserDetails userDetails =
                         customUserDetailsService.loadUserByUsername(username);// "Go to database, find the user and its roles and permissions, and return Spring Security authentication object."
-
                 UsernamePasswordAuthenticationToken authentication = // default spring security  auth class. needed to match username from username taken out by token
                         new UsernamePasswordAuthenticationToken(
                                 username,
                                 null,//password Not needed because JWT already authenticated user.
                                 userDetails.getAuthorities() // get roles and permissions from here to get RBAC
-                        );
-
+                        ); // from here u can get the .hasauthority feature
+                
+                // this below 2 lines has to be done after a filter. if the next filters find this filled they wont disturb
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication); // Stores logged-in user in Spring Security context.
 
@@ -65,6 +65,6 @@ public class JwtFilter extends OncePerRequestFilter { // This filter runs on EVE
             }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); //request aage badhado
     }
 }

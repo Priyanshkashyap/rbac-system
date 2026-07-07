@@ -1,9 +1,11 @@
 package com.example.demo.service;
+import com.example.demo.entity.AuthProvider;
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.CompleteProfileRequest;
 import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.ResetPasswordRequest;
 import com.example.demo.dto.UpdateUserRequest;
+import com.example.demo.entity.AuthProvider;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.RoleGroup;
 import com.example.demo.repository.RoleGroupRepository;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,10 @@ import com.example.demo.util.PasswordValidator;
 @Service
 public class UserService {
 
+    @Autowired
+    private SessionService sessionService;
+    @Autowired
+    private HttpServletRequest request;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -31,16 +38,19 @@ public class UserService {
     private RoleGroupRepository roleGroupRepository;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private CaptchaVerificationService captchaVerificationService;
     public User createUser(User user) {
 
-        if (!PasswordValidator.isStrong(
-                user.getPassword()
-        )) {
+        if (!PasswordValidator.isStrong(user.getPassword())) {
             throw new RuntimeException(
                     "Password must contain uppercase, lowercase, number and special character"
             );
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setProvider(AuthProvider.MANUAL);
+        Role defaultRole = roleRepository.findByName("USER").orElseThrow(() -> new RuntimeException("Default role missing"));
+        user.getRoles().add(defaultRole);
         return userRepository.save(user);
     }
     public User assignRole(Long userId, String roleName) {
@@ -55,11 +65,17 @@ public class UserService {
 
         return userRepository.save(user);
     }
-    public LoginResponse login(String email, String password) {
-
+    public LoginResponse login(String email, String password,String captchaToken) {
+        if(!captchaVerificationService.verifyCaptcha(captchaToken))
+        {
+            throw new RuntimeException("Captcha validation failed");
+        }
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        if(user.getProvider() != AuthProvider.MANUAL){
 
+            throw new RuntimeException("Use "+ user.getProvider()+ " Sign In");
+        }
         if (!user.isActive()) {
             throw new RuntimeException(
                     "User is deactivated"
@@ -71,6 +87,7 @@ public class UserService {
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
+        sessionService.createSession(user, token, request);
 
         return new LoginResponse( // instead of token we are also returning first login as a form of another dto
                 token,

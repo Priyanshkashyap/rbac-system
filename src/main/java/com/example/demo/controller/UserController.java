@@ -34,7 +34,8 @@ public class UserController {
     public LoginResponse login(@RequestBody LoginRequest request) { // takes input from request body
         return userService.login(
                 request.getEmail(),
-                request.getPassword()
+                request.getPassword(),
+                request.getCaptchaToken()
         );
     }
     @PutMapping("/{userId}/roles/{roleName}")

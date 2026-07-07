@@ -3,6 +3,7 @@ package com.example.demo.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,16 +13,16 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY =
-            "myverystrongsecretkeyforjwtauthentication12345";
+    @Value("${SECRET_KEY}")
+    private  String SECRET_KEY ;
 
     private SecretKey getSigningKey() { // This method converts your normal string secret into a proper cryptographic key object that JWT library can use securely.
-        return Keys.hmacShaKeyFor(
+        return Keys.hmacShaKeyFor( // these classes are injected by the packages we installed
                 SECRET_KEY.getBytes(StandardCharsets.UTF_8)
         );
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username) { // has all 2 components required to make a key i.e. secret key in hmacsha form and the username as input to the function
 
         return Jwts.builder()
                 .subject(username)

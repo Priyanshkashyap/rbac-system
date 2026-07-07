@@ -1,11 +1,13 @@
 package com.example.demo.entity;
-
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
+import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -14,6 +16,8 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider;
     private Long id;
     private String username;
     private String email;
@@ -43,4 +47,10 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     private Set<RoleGroup> roleGroups = new HashSet<>();// by this it knows that group and user are joined
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL
+    )
+    private List<UserSession> sessions;
 }
