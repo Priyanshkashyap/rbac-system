@@ -99,6 +99,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/manage/**")
                         .hasAuthority("USER_DELETE")
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/instance").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth

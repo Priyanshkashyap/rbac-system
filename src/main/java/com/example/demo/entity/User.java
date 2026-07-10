@@ -16,9 +16,9 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
-    private Long id;
     private String username;
     private String email;
     private String password;
