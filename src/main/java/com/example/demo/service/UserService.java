@@ -191,7 +191,17 @@ public class UserService {
         return userRepository.save(user);
     }
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+
+        List<User> users = userRepository.findAll();
+
+        System.out.println("================================");
+        System.out.println("Users found = " + users.size());
+
+        for(User u : users){
+            System.out.println(u.getId() + " " + u.getEmail());
+        }
+
+        return users;
     }
     public User getUser(Long id) {
         return userRepository.findById(id)

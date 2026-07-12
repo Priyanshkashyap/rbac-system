@@ -1,4 +1,5 @@
 package com.example.demo.entity;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.*;
@@ -48,9 +49,8 @@ public class User {
     )
     private Set<RoleGroup> roleGroups = new HashSet<>();// by this it knows that group and user are joined
 
-    @OneToMany(
-            mappedBy = "user",
-            cascade = CascadeType.ALL
-    )
+    // User.java
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user")
     private List<UserSession> sessions;
 }

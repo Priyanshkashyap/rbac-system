@@ -1,4 +1,5 @@
 package com.example.demo.entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,8 +19,11 @@ public class UserSession {
     private String ipAddress;
     private String browser;
     private boolean active = true;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    // UserSession.java
+    @JsonBackReference // Jackson never tries to serialize user.
+    @ManyToOne(fetch = FetchType.LAZY) // just keeping lazy loading wont work Spring Boot says:I need to send this List<User> as JSON."So it calls Jackson.Jackson doesn't know anything about Hibernate or lazy loading.
+    // just lazy helps while selecting stuff when big things not required to save time not while exporting data as json
     private User user;
+
 
 }

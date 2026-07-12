@@ -34,43 +34,59 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException // for normal controllers, Spring internally still has a request and response object because every HTTP request needs them, but your method doesn't need direct access to them.but this implemented interface has it
     { // authentication has all the authenticated user details
+        try {
+            System.out.println("Server Name : " + request.getServerName());
+            System.out.println("Server Port : " + request.getServerPort());
+            System.out.println("Request URL : " + request.getRequestURL());
+            System.out.println("Request URI : " + request.getRequestURI());
+            System.out.println("Host Header : " + request.getHeader("Host"));
+            System.out.println("X-Forwarded-Host : " + request.getHeader("X-Forwarded-Host"));
+            System.out.println("X-Forwarded-Port : " + request.getHeader("X-Forwarded-Port"));
+            System.out.println("X-Forwarded-Proto : " + request.getHeader("X-Forwarded-Proto"));
 
-        OAuth2AuthenticationToken token =(OAuth2AuthenticationToken) authentication; // OAuth2AuthenticationToken is subclass of Authentication so parent reference variable can be type caseted into child's reference variable
-        String provider =token.getAuthorizedClientRegistrationId();
-        OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal(); // all  details converted to oauth2user object
 
-        String email = oauthUser.getAttribute("email");
-        String firstName = oauthUser.getAttribute("given_name");
-        String lastName = oauthUser.getAttribute("family_name");
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        User user;
-        if(existingUser.isPresent()) {
-            user = existingUser.get();
-        }
-        else {
-            user = new User();
-            user.setEmail(email);
-            user.setUsername(email);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setActive(true);
-            user.setFirstLogin(true);
-            user.setProfileTheme("LIGHT");
+            OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication; // OAuth2AuthenticationToken is subclass of Authentication so parent reference variable can be type caseted into child's reference variable
+            String provider = token.getAuthorizedClientRegistrationId();
+            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal(); // all  details converted to oauth2user object
 
-            if(provider.equals("google")){
-                user.setProvider(AuthProvider.GOOGLE);
-            }else{
-                user.setProvider(AuthProvider.GITHUB);
+            String email = oauthUser.getAttribute("email");
+            String firstName = oauthUser.getAttribute("given_name");
+            String lastName = oauthUser.getAttribute("family_name");
+            Optional<User> existingUser = userRepository.findByEmail(email);
+            User user;
+            if (existingUser.isPresent()) {
+                user = existingUser.get();
+            } else {
+                user = new User();
+                user.setEmail(email);
+                user.setUsername(email);
+                user.setFirstName(firstName);
+                user.setLastName(lastName);
+                user.setActive(true);
+                user.setFirstLogin(true);
+                user.setProfileTheme("LIGHT");
+
+                if (provider.equals("google")) {
+                    user.setProvider(AuthProvider.GOOGLE);
+                } else {
+                    user.setProvider(AuthProvider.GITHUB);
+                }
+                userRepository.save(user);
             }
-            userRepository.save(user);
-        }
-        String jwt = jwtUtil.generateToken(email);
-        sessionService.createSession(user, jwt, request);
+            String jwt = jwtUtil.generateToken(email);
+            sessionService.createSession(user, jwt, request);
 
-        response.sendRedirect(
-                "http://localhost:5173/oauth-success"
-                        + "?token=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8)
-                        + "&userId=" + user.getId()
-        );//export the JWT into a form that is safe to put inside a URL.
+            System.out.println("JWT = " + jwt);
+            System.out.println("Redirecting to frontend...");
+
+            response.sendRedirect(
+                    "http://localhost:5173/oauth-success"
+                            + "?token=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8)
+                            + "&userId=" + user.getId()
+            );//export the JWT into a form that is safe to put inside a URL.
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
