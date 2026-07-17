@@ -12,34 +12,29 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// Incoming Request
-//   ↓
-//Check FilterChain 1 (match?)
-//   ↓
-//Check FilterChain 2 (match?)
-//   ↓
-//Apply FIRST matching chain or keep manual order
 @Configuration
 public class SecurityConfig {
 
     @Autowired
     private OAuth2SuccessHandler oAuth2SuccessHandler;
+
     @Autowired
     private JwtFilter jwtFilter;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    @Bean // The RETURN VALUE of this method becomes a Spring bean
-    // as configurations automatically apply the beans everywhere we dont need to inject this bean elsewhere.
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable()) // we disabled the csrf attack using jwt so no need here
-                .sessionManagement(sessionManagement ->sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // no default session value isnt stored in the server as default
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // options request always sent before all the other requests when talked by cors
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Public endpoints
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/api/users/login").permitAll()
@@ -48,86 +43,49 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/*/complete-profile").permitAll()
 
                         // User APIs
-                        .requestMatchers(HttpMethod.GET, "/api/users")
-                        .hasAuthority("USER_READ")
-
-                        .requestMatchers(HttpMethod.GET, "/api/users/*")
-                        .hasAuthority("USER_READ")
-
-                        .requestMatchers(HttpMethod.PUT, "/api/users/*")
-                        .hasAuthority("USER_UPDATE")
-
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/*")
-                        .hasAuthority("USER_DELETE")
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("USER_READ")
+                        .requestMatchers(HttpMethod.GET, "/api/users/*").hasAuthority("USER_READ")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*").hasAuthority("USER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasAuthority("USER_DELETE")
 
                         // User Role Assignment
-                        .requestMatchers("/api/users/*/roles/*")
-                        .hasAuthority("ROLE_ASSIGN")
+                        .requestMatchers("/api/users/*/roles/*").hasAuthority("ROLE_ASSIGN")
 
                         // User Group Assignment
-                        .requestMatchers("/api/users/*/groups/*")
-                        .hasAuthority("GROUP_ASSIGN")
+                        .requestMatchers("/api/users/*/groups/*").hasAuthority("GROUP_ASSIGN")
 
                         // Theme
-                        .requestMatchers("/api/users/*/theme")
-                        .authenticated()
+                        .requestMatchers("/api/users/*/theme").authenticated()
 
                         // Export
-                        .requestMatchers("/api/users/export")
-                        .hasAuthority("EXPORT_USER")
+                        .requestMatchers("/api/users/export").hasAuthority("EXPORT_USER")
 
                         // Audit
-                        .requestMatchers("/api/audit/**")
-                        .hasAuthority("AUDIT_READ")
+                        .requestMatchers("/api/audit/**").hasAuthority("AUDIT_READ")
 
                         // Permissions
-                        .requestMatchers("/api/permissions/**")
-                        .hasAuthority("PERMISSION_MANAGE")
+                        .requestMatchers("/api/permissions/**").hasAuthority("PERMISSION_MANAGE")
 
                         // Roles
-                        .requestMatchers("/api/roles/**")
-                        .hasAuthority("ROLE_MANAGE")
+                        .requestMatchers("/api/roles/**").hasAuthority("ROLE_MANAGE")
+                        .requestMatchers("/api/roles/*/permissions/*").hasAuthority("PERMISSION_ASSIGN")
 
-                        .requestMatchers("/api/roles/*/permissions/*")
-                        .hasAuthority("PERMISSION_ASSIGN")
+                        // Role Conflicts / Separation of Duties
+                        .requestMatchers("/api/role-conflicts/**").hasAuthority("ROLE_MANAGE")
 
                         // Role Groups
-                        .requestMatchers("/api/role-groups/**")
-                        .hasAuthority("ROLE_GROUP_MANAGE")
+                        .requestMatchers("/api/role-groups/**").hasAuthority("ROLE_GROUP_MANAGE")
 
-                        // Example special permission
-                        .requestMatchers("/api/manage/**")
-                        .hasAuthority("USER_DELETE")
+                        // Special
+                        .requestMatchers("/api/manage/**").hasAuthority("USER_DELETE")
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/instance").permitAll()
+
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth -> oauth
-                        .successHandler(
-                                oAuth2SuccessHandler
-                        ))
-                .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);//“Run my JWT filter BEFORE Spring’s normal login authentication filter.ye normal vaala krne se pehle hi hum fields bhardiye”
+                .oauth2Login(oauth -> oauth.successHandler(oAuth2SuccessHandler))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
-
-/*Application starts
-↓
-Spring scans packages like component,service,controller,etc.
-↓
-Finds SecurityConfig
-↓
-Creates SecurityConfig bean
-↓
-Looks for @Bean methods
-↓
-Executes securityFilterChain()
-↓
-Stores returned object as bean
-↓
-Security system initialized
-↓
-App starts listening for requests
- */

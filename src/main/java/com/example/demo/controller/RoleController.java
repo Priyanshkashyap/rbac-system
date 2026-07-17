@@ -20,39 +20,46 @@ public class RoleController {
     }
 
     @PostMapping
-    public Role createRole(@RequestBody Role role) { // @RequestBody Converts JSON → Java object of db
+    public Role createRole(@RequestBody Role role) {
         return roleService.createRole(role);
     }
+
     @PutMapping("/{roleId}/permissions/{permissionId}")
     public Role assignPermission(
             @PathVariable Long roleId,
             @PathVariable Long permissionId
     ) {
-        return roleService.assignPermission(
-                roleId,
-                permissionId
-        );
+        return roleService.assignPermission(roleId, permissionId);
     }
-    @GetMapping("/{id}")
-    public Role getRole(
-            @PathVariable Long id
+
+    @PutMapping("/{roleId}/parent/{parentRoleId}")
+    public Role assignParentRole(
+            @PathVariable Long roleId,
+            @PathVariable Long parentRoleId
     ) {
+        return roleService.assignParentRole(roleId, parentRoleId);
+    }
+
+    @DeleteMapping("/{roleId}/parent")
+    public Role removeParentRole(@PathVariable Long roleId) {
+        return roleService.removeParentRole(roleId);
+    }
+
+    @GetMapping("/{id}")
+    public Role getRole(@PathVariable Long id) {
         return roleService.getRole(id);
     }
+
     @DeleteMapping("/{id}")
-    public void deleteRole(
-            @PathVariable Long id
-    ) {
+    public void deleteRole(@PathVariable Long id) {
         roleService.deleteRole(id);
     }
+
     @PutMapping("/{id}")
     public Role updateRole(
             @PathVariable Long id,
             @RequestBody Role role
     ) {
-        return roleService.updateRole(
-                id,
-                role
-        );
+        return roleService.updateRole(id, role);
     }
 }
